@@ -32,7 +32,7 @@ type Diagnostic =
     { range: Range
       severity: int option
       code: string
-      source: string option // "F#"
+      source: string option
       message: string
       relatedInformation: DiagnosticRelatedInformation[] option }
     static member Error = 1
@@ -46,7 +46,7 @@ type PublishDiagnosticsParams =
 
 type ClientCapabilities =
     { workspace: JToken option // TODO: WorkspaceClientCapabilities
-      textDocument: JToken option // TODO: TextDocumentCapabilities
+      textDocument: JToken option // TODO: TextDocumentClientCapabilities, publishDiagnostics: { relatedInformation: bool option }
       experimental: JToken option
       supportsVisualStudioExtensions: bool option }
 

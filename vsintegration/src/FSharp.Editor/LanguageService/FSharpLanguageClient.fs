@@ -7,7 +7,6 @@ open System.Diagnostics
 open System.IO
 open System.Threading
 open System.Threading.Tasks
-open FSharp.Compiler.LanguageServer
 open Microsoft.FSharp.Control
 open Microsoft.VisualStudio.FSharp.Editor
 open Microsoft.VisualStudio.FSharp.Editor.Helpers
@@ -35,7 +34,8 @@ type FSharpContentDefinition() =
 type internal FSharpLanguageClient
     [<ImportingConstructor>]
     (
-        lspService: LspService
+        lspService: LspService,
+        settings: EditorOptions
     ) =
     inherit LanguageClient()
     override __.Name = "F# Language Service"
@@ -64,5 +64,7 @@ type internal FSharpLanguageClient
         member __.CustomMessageTarget = null
         member __.MiddleLayer = null
         member __.AttachForCustomMessageAsync(rpc: JsonRpc) =
-            rpc.JsonSerializer.Converters.Add(JsonOptionConverter()) // ensure we can set `'T option` values
-            lspService.SetJsonRpc(rpc) |> Async.StartAsTask :> Task
+            async {
+                do! lspService.SetJsonRpc(rpc)
+                do! lspService.SetOptions(settings.Advanced.AsLspOptions())
+            } |> Async.StartAsTask :> Task

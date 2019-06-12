@@ -2,16 +2,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;netcoreapp2.1</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' == 'Unix'">netcoreapp2.1</TargetFrameworks>
+    <TargetFramework>net472</TargetFramework>
     <OutputType>Library</OutputType>
     <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
     <UnitTestType>nunit</UnitTestType>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="TestClient.fs" />
+    <Compile Include="TemporaryDirectory.fs" />
     <Compile Include="ProtocolTests.fs" />
     <Compile Include="SerializationTests.fs" />
+    <Compile Include="DiagnosticsTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

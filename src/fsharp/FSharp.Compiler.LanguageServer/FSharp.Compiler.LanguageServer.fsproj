@@ -4,8 +4,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetExt>.exe</TargetExt>
-    <TargetFrameworks>net472;netcoreapp2.1</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' == 'Unix'">netcoreapp2.1</TargetFrameworks>
+    <TargetFramework>net472</TargetFramework>
     <IsPackable>true</IsPackable>
     <PackageDescription>Implements the Language Server Protocol (LSP) for F#.</PackageDescription>
   </PropertyGroup>
@@ -28,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
   </ItemGroup>
 

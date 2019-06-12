@@ -32,6 +32,9 @@ type internal FSharpDocumentDiagnosticAnalyzer() =
 
     let getProjectInfoManager(document: Document) =
         document.Project.Solution.Workspace.Services.GetService<FSharpCheckerWorkspaceService>().FSharpProjectOptionsManager
+
+    let getSettings(document: Document) =
+        document.Project.Solution.Workspace.Services.GetService<EditorOptions>()
     
     static let errorInfoEqualityComparer =
         { new IEqualityComparer<FSharpErrorInfo> with 
@@ -111,6 +114,10 @@ type internal FSharpDocumentDiagnosticAnalyzer() =
     override this.SupportedDiagnostics = RoslynHelpers.SupportedDiagnostics()
 
     override this.AnalyzeSyntaxAsync(document: Document, cancellationToken: CancellationToken): Task<ImmutableArray<Diagnostic>> =
+        // if using LSP, just bail early
+        let settings = getSettings document
+        if settings.Advanced.UsePreviewDiagnostics then Task.FromResult(ImmutableArray<Diagnostic>.Empty)
+        else
         let projectInfoManager = getProjectInfoManager document
         asyncMaybe {
             let! parsingOptions, projectOptions = projectInfoManager.TryGetOptionsForEditingDocumentOrProject(document, cancellationToken)
@@ -124,6 +131,10 @@ type internal FSharpDocumentDiagnosticAnalyzer() =
         |> RoslynHelpers.StartAsyncAsTask cancellationToken
 
     override this.AnalyzeSemanticsAsync(document: Document, cancellationToken: CancellationToken): Task<ImmutableArray<Diagnostic>> =
+        // if using LSP, just bail early
+        let settings = getSettings document
+        if settings.Advanced.UsePreviewDiagnostics then Task.FromResult(ImmutableArray<Diagnostic>.Empty)
+        else
         let projectInfoManager = getProjectInfoManager document
         asyncMaybe {
             let! parsingOptions, _, projectOptions = projectInfoManager.TryGetOptionsForDocumentOrProject(document, cancellationToken) 
