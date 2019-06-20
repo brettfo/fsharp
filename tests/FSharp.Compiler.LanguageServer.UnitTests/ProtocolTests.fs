@@ -11,7 +11,11 @@ open StreamJsonRpc
 [<TestFixture>]
 type ProtocolTests() =
 
+#if !NETCOREAPP
+    // The `netcoreapp2.1` version of `FSharp.Compiler.LanguageServer.exe` can't be run without a `publish` step so
+    // we're artificially restricting this test to the full framework.
     [<Test>]
+#endif
     member __.``Server consuming stdin and stdout``() =
         async {
             // start server as a console app

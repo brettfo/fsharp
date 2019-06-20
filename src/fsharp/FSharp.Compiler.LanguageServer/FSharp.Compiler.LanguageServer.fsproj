@@ -4,9 +4,12 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetExt>.exe</TargetExt>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;netcoreapp2.1</TargetFrameworks>
     <IsPackable>true</IsPackable>
     <PackageDescription>Implements the Language Server Protocol (LSP) for F#.</PackageDescription>
+
+    <!-- Ensure all assemblies end up in the output directory; this makes unit tests work. -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,11 +25,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="FSharp.Compiler.LanguageServer.DesignTime.targets" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\FSharp.Compiler.Private\FSharp.Compiler.Private.fsproj" />
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\FSharp.Core\FSharp.Core.fsproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <!-- <PackageReference Include="System.CommandLine.Experimental" Version="$(SystemCommandLineExperimentalVersion)" /> -->
+    <!-- <PackageReference Include="Buildalyzer" Version="$(BuildalyzerVersion)" /> -->
     <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
   </ItemGroup>

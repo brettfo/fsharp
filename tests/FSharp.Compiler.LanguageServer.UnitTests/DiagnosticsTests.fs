@@ -60,9 +60,9 @@ type DiagnosticsTests() =
 
     let getDiagnostics (content: string) =
         async {
-            let client = createClientTest "netstandard2.0" [ "Program.fs", content ]
-            let! diagnostics = client.WaitForDiagnosticsAsync client.Initialize ["Program.fs"]
-            return diagnostics.["Program.fs"]
+            let client = createClientTest "netstandard2.0" [ "lib.fs", content ]
+            let! diagnostics = client.WaitForDiagnosticsAsync client.Initialize ["lib.fs"]
+            return diagnostics.["lib.fs"]
         }
 
     [<Test>]
@@ -94,7 +94,7 @@ module Numbers =
             Assert.AreEqual(4, diag.range.``end``.line)
             Assert.AreEqual(24, diag.range.``end``.character)
             Assert.AreEqual("This expression was expected to have type\n    'int'    \nbut here has type\n    'bool'", diag.message.Trim())
-            Assert.IsTrue(diag.source.Value.EndsWith("Program.fs"))
+            Assert.IsTrue(diag.source.Value.EndsWith("lib.fs"))
         } |> Async.StartAsTask :> Task
 
     [<Test>]
@@ -114,14 +114,14 @@ module Numbers =
 "
 
             // verify initial state
-            let client = createClientTest "netstandard2.0" [ "Program.fs", correct ]
-            let! diagnostics = client.WaitForDiagnosticsAsync client.Initialize ["Program.fs"]
-            Assert.AreEqual(0, diagnostics.["Program.fs"].Length)
+            let client = createClientTest "netstandard2.0" [ "lib.fs", correct ]
+            let! diagnostics = client.WaitForDiagnosticsAsync client.Initialize ["lib.fs"]
+            Assert.AreEqual(0, diagnostics.["lib.fs"].Length)
 
             // touch file with incorrect data
-            let touch () = File.WriteAllText(Path.Combine(client.RootPath, "Program.fs"), incorrect)
-            let! diagnostics = client.WaitForDiagnostics touch ["Program.fs"]
-            let diag = diagnostics.["Program.fs"].Single()
+            let touch () = File.WriteAllText(Path.Combine(client.RootPath, "lib.fs"), incorrect)
+            let! diagnostics = client.WaitForDiagnostics touch ["lib.fs"]
+            let diag = diagnostics.["lib.fs"].Single()
             Assert.AreEqual("FS0001", diag.code)
         } |> Async.StartAsTask :> Task
 
@@ -142,13 +142,13 @@ module Numbers =
 "
 
             // verify initial state
-            let client = createClientTest "netstandard2.0" [ "Program.fs", incorrect ]
-            let! diagnostics = client.WaitForDiagnosticsAsync client.Initialize ["Program.fs"]
-            let diag = diagnostics.["Program.fs"].Single()
+            let client = createClientTest "netstandard2.0" [ "lib.fs", incorrect ]
+            let! diagnostics = client.WaitForDiagnosticsAsync client.Initialize ["lib.fs"]
+            let diag = diagnostics.["lib.fs"].Single()
             Assert.AreEqual("FS0001", diag.code)
 
             // touch file with incorrect data
-            let touch () = File.WriteAllText(Path.Combine(client.RootPath, "Program.fs"), correct)
-            let! diagnostics = client.WaitForDiagnostics touch ["Program.fs"]
-            Assert.AreEqual(0, diagnostics.["Program.fs"].Length)
+            let touch () = File.WriteAllText(Path.Combine(client.RootPath, "lib.fs"), correct)
+            let! diagnostics = client.WaitForDiagnostics touch ["lib.fs"]
+            Assert.AreEqual(0, diagnostics.["lib.fs"].Length)
         } |> Async.StartAsTask :> Task

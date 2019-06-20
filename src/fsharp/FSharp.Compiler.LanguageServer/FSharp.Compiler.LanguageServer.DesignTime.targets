@@ -1,0 +1,42 @@
+<Project>
+
+  <PropertyGroup>
+    <ProvideCommandLineArgs>true</ProvideCommandLineArgs>
+    <DesignTimeBuild>true</DesignTimeBuild>
+    <BuildProjectReferences>false</BuildProjectReferences>
+    <SkipCompilerExecution>true</SkipCompilerExecution>
+    <DisableRarCache>true</DisableRarCache>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
+    <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
+    <SkipCopyBuildProduct>true</SkipCopyBuildProduct>
+    <AddModules>false</AddModules>
+    <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <!-- displays the target frameworks of a cross-targeted project -->
+  <Target Name="ComputeDependsOn">
+    <PropertyGroup>
+      <WorkerDependsOn Condition="'$(TargetFramework)' == ''">_ComputeTargetFrameworkItems</WorkerDependsOn>
+      <WorkerDependsOn Condition="'$(TargetFramework)' != ''">PopulateTargetFrameworks</WorkerDependsOn>
+    </PropertyGroup>
+  </Target>
+  <Target Name="PopulateTargetFrameworks">
+    <ItemGroup>
+      <_TargetFramework Include="$(TargetFramework)" />
+    </ItemGroup>
+  </Target>
+  <Target Name="ReportTargetFrameworksWorker" DependsOnTargets="ComputeDependsOn;$(WorkerDependsOn)">
+    <Message Text="DetectedTargetFramework=%(_TargetFramework.Identity)" Importance="High" />
+  </Target>
+  <Target Name="ReportTargetFrameworks" DependsOnTargets="ComputeDependsOn;ReportTargetFrameworksWorker">
+  </Target>
+
+  <!-- displays the command line arguments passed to fsc.exe -->
+  <Target Name="ReportCommandLineArgs"
+          DependsOnTargets="CoreCompile">
+    <Message Text="DetectedCommandLineArg=%(FscCommandLineArgs.Identity)" Importance="High" />
+  </Target>
+
+</Project>

@@ -68,6 +68,7 @@
     <RoslynVersion>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\RoslynPackageVersion.txt').Trim())</RoslynVersion>
     <!-- System.* packages -->
     <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
+    <!-- <SystemCommandLineExperimentalVersion>0.3.0-alpha.19317.1</SystemCommandLineExperimentalVersion> -->
     <SystemConsoleVersion>4.3.0</SystemConsoleVersion>
     <SystemDesignVersion>4.0.0</SystemDesignVersion>
     <SystemDiagnosticsProcessVersion>4.3.0</SystemDiagnosticsProcessVersion>
@@ -160,6 +161,7 @@
     <MicroBuildCoreSentinelVersion>1.0.0</MicroBuildCoreSentinelVersion>
     <MicroBuildPluginsSwixBuildVersion>1.0.147</MicroBuildPluginsSwixBuildVersion>
     <!-- other packages -->
+    <!-- <BuildalyzerVersion>2.3.0</BuildalyzerVersion> -->
     <FsCheckVersion>3.0.0-alpha4</FsCheckVersion>
     <FSharpDataTypeProvidersVersion>4.3.0.0</FSharpDataTypeProvidersVersion>
     <MicrosoftCompositionVersion>1.0.30</MicrosoftCompositionVersion>

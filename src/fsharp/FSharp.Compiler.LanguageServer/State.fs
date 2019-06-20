@@ -4,11 +4,11 @@ namespace FSharp.Compiler.LanguageServer
 
 open System
 open System.Collections.Concurrent
+open System.Collections.Generic
+open System.Diagnostics
 open System.IO
 open FSharp.Compiler.SourceCodeServices
 open Microsoft.Build.Construction
-open Microsoft.Build.Definition
-open Microsoft.Build.Evaluation
 open StreamJsonRpc
 
 type State() =
@@ -37,25 +37,75 @@ type State() =
     do fileWatcher.Deleted.Add(fileChanged)
     do fileWatcher.Renamed.Add(fileRenamed)
 
+    let execProcess (name: string) (args: string) =
+        let startInfo = ProcessStartInfo(name, args)
+        startInfo.CreateNoWindow <- true
+        startInfo.RedirectStandardOutput <- true
+        startInfo.UseShellExecute <- false
+        let lines = List<string>()
+        use proc = new Process()
+        proc.StartInfo <- startInfo
+        proc.OutputDataReceived.Add(fun args -> lines.Add(args.Data))
+        proc.Start() |> ignore
+        proc.BeginOutputReadLine()
+        proc.WaitForExit()
+        lines.ToArray()
+
+    let linesWithPrefixClean (prefix: string) (lines: string[]) =
+        lines
+        |> Array.filter (isNull >> not)
+        |> Array.map (fun line -> line.TrimStart(' '))
+        |> Array.filter (fun line -> line.StartsWith(prefix))
+        |> Array.map (fun line -> line.Substring(prefix.Length))
+
     let getProjectOptions (rootDir: string) =
         if isNull rootDir then [||]
         else
             fileWatcher.Path <- rootDir
             fileWatcher.EnableRaisingEvents <- true
-            let getProjectSourceFiles (path: string) =
-                let options = ProjectOptions()
-                let project = Project.FromFile(path, options)
-                let compileItems = project.GetItems("Compile")
-                let sourceFiles =
-                    compileItems
-                    |> Seq.map (fun c -> c.GetMetadataValue("FullPath"))
-                    |> Seq.toArray
+            let getProjectOptions (projectPath: string) =
+                let projectDir = Path.GetDirectoryName(projectPath)
+                let normalizePath (path: string) =
+                    if Path.IsPathRooted(path) then path
+                    else Path.Combine(projectDir, path)
+
+                let customTargetsPath = Path.Combine(Path.GetDirectoryName(typeof<State>.Assembly.Location), "FSharp.Compiler.LanguageServer.DesignTime.targets")
+                let detectedTfmSentinel = "DetectedTargetFramework="
+                let detectedCommandLineArgSentinel = "DetectedCommandLineArg="
+
+                // find the target frameworks
+                let targetFrameworks =
+                    sprintf "msbuild \"%s\" \"/p:CustomAfterMicrosoftCommonCrossTargetingTargets=%s\" \"/p:CustomAfterMicrosoftCommonTargets=%s\" /t:ReportTargetFrameworks" projectPath customTargetsPath customTargetsPath
+                    |> execProcess "dotnet"
+                    |> linesWithPrefixClean detectedTfmSentinel
+
+                let getArgs (tfm: string) =
+                    sprintf "build \"%s\" \"/p:CustomAfterMicrosoftCommonTargets=%s\" \"/p:TargetFramework=%s\" /t:Restore;ReportCommandLineArgs" projectPath customTargetsPath tfm
+                    |> execProcess "dotnet"
+                    |> linesWithPrefixClean detectedCommandLineArgSentinel
+
+                let tfmAndArgs =
+                    targetFrameworks
+                    |> Array.map (fun tfm -> tfm, getArgs tfm)
+
+                let separateArgs (args: string[]) =
+                    args
+                    |> Array.partition (fun a -> a.StartsWith("-"))
+                    |> (fun (options, files) ->
+                        let normalizedFiles = files |> Array.map normalizePath
+                        options, normalizedFiles)
+
+                // TODO: for now we're only concerned with the first TFM
+                let _tfm, args = Array.head tfmAndArgs
+
+                let otherOptions, sourceFiles = separateArgs args
+
                 let projectOptions: FSharpProjectOptions =
-                    { ProjectFileName = path
+                    { ProjectFileName = projectPath
                       ProjectId = None
                       SourceFiles = sourceFiles
-                      OtherOptions = [||]
-                      ReferencedProjects = [||]
+                      OtherOptions = otherOptions
+                      ReferencedProjects = [||] // TODO: populate from @(ProjectReference)
                       IsIncompleteTypeCheckEnvironment = false
                       UseScriptResolutionRules = false
                       LoadTime = DateTime.Now
@@ -63,8 +113,6 @@ type State() =
                       OriginalLoadReferences = []
                       ExtraProjectInfo = None
                       Stamp = None }
-                for sourceFile in sourceFiles do
-                    sourceFileToProjectMap.AddOrUpdate(sourceFile, projectOptions, fun _ _ -> projectOptions) |> ignore
                 projectOptions
             let topLevelProjects = Directory.GetFiles(rootDir, "*.fsproj")
             let watchableProjectPaths =
@@ -84,7 +132,16 @@ type State() =
                 | _ -> topLevelProjects
             let watchableProjectOptions =
                 watchableProjectPaths
-                |> Array.map getProjectSourceFiles
+                |> Array.map getProjectOptions
+
+            // associate source files with project options
+            // TODO: watch for changes to .fsproj
+            // TODO: watch for changes to .deps.json
+            watchableProjectOptions
+            |> Seq.iter (fun projectOptions ->
+                projectOptions.SourceFiles
+                |> Seq.iter (fun sourceFile -> sourceFileToProjectMap.AddOrUpdate(sourceFile, projectOptions, fun _ _ -> projectOptions) |> ignore ))
+
             watchableProjectOptions
 
     member __.Checker = checker

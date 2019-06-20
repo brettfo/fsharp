@@ -3,11 +3,7 @@
 namespace FSharp.Compiler.LanguageServer
 
 open System
-open System.Diagnostics
 open System.IO
-open System.Linq
-open System.Runtime.InteropServices
-open System.Text.RegularExpressions
 open StreamJsonRpc
 
 type Server(sendingStream: Stream, receivingStream: Stream) =
