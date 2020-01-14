@@ -54,8 +54,17 @@ https://blogs.msdn.microsoft.com/dotnet/2017/03/14/announcing-nightly-releases-f
 
 Alternatively, if you _really_ want to live on the bleeding edge, you can set up a nightly feed for the Visual Studio preview releases, which use the latest commit in the preview branch. To do so, follow the same instructions as the above blog post, but instead with these links:
 
+(TODO: migrate VSIX package to ADO/universal package)
+
 * Set your feed to the preview feed: https://dotnet.myget.org/F/fsharp-preview/vsix
 * Install a VSIX manually from the preview feed: https://dotnet.myget.org/feed/fsharp-preview/package/vsix/VisualFSharp
+
+Regular per-build NuGet packages can be consumed from this feed:
+
+`<TODO> this is likely wrong`
+`https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json`
+([browse](https://dev.azure.com/dnceng/public/_packaging?_a=feed&feed=dotnet-tools))
+`</TODO>`
 
 ## Branches
 

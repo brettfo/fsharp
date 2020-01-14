@@ -45,6 +45,22 @@ bottom you'll see a line that looks like `Created request #xxxxxx at https://...
 To see all insertions created this way (possibly including for other internal teams), check
 [here](https://dev.azure.com/devdiv/DevDiv/_git/VS/pullrequests?createdBy=122d5278-3e55-4868-9d40-1e28c2515fc4&_a=active).
 
+## Per-build package uploads
+
+Per-build package uploads are managed by the internal `darc` tool that comes with the Arcade SDK.  Updating the package
+subscriptions requires:
+
+1. Installing the latest `darc` tool: `.\eng\common\darc-init.ps1`
+
+2. **(Only required once)** Authenticate: `darc authenticate`
+
+3. Review package channel subscriptions: `darc get-default-channels --source-repo dotnet/fsharp`
+
+   E.g., `... release/dev16.5 -> .NET Core SDK 3.1.2xx` indicates that the packages produced from a build of the
+   `release/dev16.5` branch will be published to the `.NET Core SDK 3.1.2xx` package feed.
+
+Per-build packages should come from `master` and be published to the `TODO: fixme` feed.
+
 ## Less interesting links
 
 [Nightly VSIX (master) uploader](https://dev.azure.com/dnceng/internal/_release?_a=releases&definitionId=70).  Uploads
