@@ -1481,7 +1481,7 @@ let emitParameter cenv emEnv (defineParameter: int * ParameterAttributes * strin
 // buildMethodPass2
 //----------------------------------------------------------------------------
 
-#if !FX_RESHAPED_REFEMIT || NETCOREAPP3_1
+#if !FX_RESHAPED_REFEMIT || NET5_0
 
 let enablePInvoke = true
 
@@ -1540,8 +1540,8 @@ let rec buildMethodPass2 cenv tref (typB: TypeBuilder) emEnv (mdef: ILMethodDef)
 (* p.CharBestFit *)
 (* p.NoMangle *)
 
-#if !FX_RESHAPED_REFEMIT || NETCOREAPP3_1
-        // DefinePInvokeMethod was removed in early versions of coreclr, it was added back in NETCOREAPP3.
+#if !FX_RESHAPED_REFEMIT || NET5_0
+        // DefinePInvokeMethod was removed in early versions of coreclr, it was added back in netcoreapp 3.
         // It has always been available in the desktop framework
         let methB = typB.DefinePInvokeMethod(mdef.Name, p.Where.Name, p.Name, attrs, cconv, rty, null, null, argtys, null, null, pcc, pcs)
 #else

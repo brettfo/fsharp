@@ -18,7 +18,7 @@ module Utilities =
     [<RequireQualifiedAccess>]
     type TargetFramework =
         | NetStandard20
-        | NetCoreApp31
+        | NetCoreApp50
 
     let private getResourceStream name =
         let assembly = typeof<TargetFramework>.GetTypeInfo().Assembly
@@ -51,7 +51,7 @@ module Utilities =
             let systemDynamicRuntimeRef = lazy AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.System_Dynamic_Runtime).GetReference(display = "System.Dynamic.Runtime.dll (netstandard 2.0 ref)")
 
 
-        module private NetCoreApp31Refs =
+        module private NetCoreApp50Refs =
             let mutable (_mscorlib: byte[]) = Unchecked.defaultof<byte[]>
             let mutable (_netstandard: byte[]) = Unchecked.defaultof<byte[]>
             let mutable (_System_Console: byte[]) = Unchecked.defaultof<byte[]>
@@ -66,13 +66,13 @@ module Utilities =
             let System_Dynamic_Runtime () = getOrCreateResource &_System_Dynamic_Runtime "System.Dynamic.Runtime.dll"
 
         [<RequireQualifiedAccess>]
-        module NetCoreApp31 =
-            let netStandard = lazy AssemblyMetadata.CreateFromImage(NetCoreApp31Refs.netstandard ()).GetReference(display = "netstandard.dll (netcoreapp 3.1 ref)")
-            let mscorlibRef = lazy AssemblyMetadata.CreateFromImage(NetCoreApp31Refs.mscorlib ()).GetReference(display = "mscorlib.dll (netcoreapp 3.1 ref)")
-            let systemRuntimeRef = lazy AssemblyMetadata.CreateFromImage(NetCoreApp31Refs.System_Runtime ()).GetReference(display = "System.Runtime.dll (netcoreapp 3.1 ref)")
-            let systemCoreRef = lazy AssemblyMetadata.CreateFromImage(NetCoreApp31Refs.System_Core ()).GetReference(display = "System.Core.dll (netcoreapp 3.1 ref)")
-            let systemDynamicRuntimeRef = lazy AssemblyMetadata.CreateFromImage(NetCoreApp31Refs.System_Dynamic_Runtime ()).GetReference(display = "System.Dynamic.Runtime.dll (netcoreapp 3.1 ref)")
-            let systemConsoleRef = lazy AssemblyMetadata.CreateFromImage(NetCoreApp31Refs.System_Console ()).GetReference(display = "System.Console.dll (netcoreapp 3.1 ref)")
+        module NetCoreApp50 =
+            let netStandard = lazy AssemblyMetadata.CreateFromImage(NetCoreApp50Refs.netstandard ()).GetReference(display = "netstandard.dll (netcoreapp 5.0 ref)")
+            let mscorlibRef = lazy AssemblyMetadata.CreateFromImage(NetCoreApp50Refs.mscorlib ()).GetReference(display = "mscorlib.dll (netcoreapp 5.0 ref)")
+            let systemRuntimeRef = lazy AssemblyMetadata.CreateFromImage(NetCoreApp50Refs.System_Runtime ()).GetReference(display = "System.Runtime.dll (netcoreapp 5.0 ref)")
+            let systemCoreRef = lazy AssemblyMetadata.CreateFromImage(NetCoreApp50Refs.System_Core ()).GetReference(display = "System.Core.dll (netcoreapp 5.0 ref)")
+            let systemDynamicRuntimeRef = lazy AssemblyMetadata.CreateFromImage(NetCoreApp50Refs.System_Dynamic_Runtime ()).GetReference(display = "System.Dynamic.Runtime.dll (netcoreapp 5.0 ref)")
+            let systemConsoleRef = lazy AssemblyMetadata.CreateFromImage(NetCoreApp50Refs.System_Console ()).GetReference(display = "System.Console.dll (netcoreapp 5.0 ref)")
 
     [<RequireQualifiedAccess>]
     module internal TargetFrameworkUtil =
@@ -81,13 +81,13 @@ module Utilities =
 
         let private netStandard20References =
             lazy ImmutableArray.Create(NetStandard20.netStandard.Value, NetStandard20.mscorlibRef.Value, NetStandard20.systemRuntimeRef.Value, NetStandard20.systemCoreRef.Value, NetStandard20.systemDynamicRuntimeRef.Value)
-        let private netCoreApp31References =
-            lazy ImmutableArray.Create(NetCoreApp31.netStandard.Value, NetCoreApp31.mscorlibRef.Value, NetCoreApp31.systemRuntimeRef.Value, NetCoreApp31.systemCoreRef.Value, NetCoreApp31.systemDynamicRuntimeRef.Value, NetCoreApp31.systemConsoleRef.Value)
+        let private netCoreApp50References =
+            lazy ImmutableArray.Create(NetCoreApp50.netStandard.Value, NetCoreApp50.mscorlibRef.Value, NetCoreApp50.systemRuntimeRef.Value, NetCoreApp50.systemCoreRef.Value, NetCoreApp50.systemDynamicRuntimeRef.Value, NetCoreApp50.systemConsoleRef.Value)
 
         let internal getReferences tf =
             match tf with
                 | TargetFramework.NetStandard20 -> netStandard20References.Value
-                | TargetFramework.NetCoreApp31 -> netCoreApp31References.Value
+                | TargetFramework.NetCoreApp50 -> netCoreApp50References.Value
 
     type RoslynLanguageVersion = LanguageVersion
 

@@ -207,12 +207,12 @@ let config configurationName envVars =
     let fsharpCompilerInteractiveSettingsArchitecture = "net472"
     let peverifyArchitecture = "net472"
 #else
-    let fscArchitecture = "netcoreapp3.1"
-    let fsiArchitecture = "netcoreapp3.1"
+    let fscArchitecture = "net5.0"
+    let fsiArchitecture = "net5.0"
     let fsharpCoreArchitecture = "netstandard2.0"
-    let fsharpBuildArchitecture = "netcoreapp3.1"
+    let fsharpBuildArchitecture = "net5.0"
     let fsharpCompilerInteractiveSettingsArchitecture = "netstandard2.0"
-    let peverifyArchitecture = "netcoreapp3.1"
+    let peverifyArchitecture = "net5.0"
 #endif
     let repoRoot = SCRIPT_ROOT ++ ".." ++ ".."
     let artifactsPath = repoRoot ++ "artifacts"

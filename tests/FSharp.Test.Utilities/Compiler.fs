@@ -105,7 +105,7 @@ module rec Compiler =
         | _ ->
             { Source          = Text source
               LangVersion     = CSharpLanguageVersion.CSharp8
-              TargetFramework = TargetFramework.NetCoreApp31
+              TargetFramework = TargetFramework.NetCoreApp50
               Name            = None
               References      = [] }
 

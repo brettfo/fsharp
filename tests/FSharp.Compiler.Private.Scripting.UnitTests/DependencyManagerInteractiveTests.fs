@@ -78,7 +78,7 @@ type DependencyManagerInteractiveTests() =
             Assert.AreEqual(1, result.SourceFiles |> Seq.length)
             Assert.AreEqual(1, result.Roots |> Seq.length)
 
-        let result = dp.Resolve(idm, ".fsx", [|"FSharp.Data"|], reportError, "netcoreapp3.1")
+        let result = dp.Resolve(idm, ".fsx", [|"FSharp.Data"|], reportError, "net5.0")
         Assert.AreEqual(true, result.Success)
         Assert.AreEqual(1, result.Resolutions |> Seq.length)
         Assert.AreEqual(1, result.SourceFiles |> Seq.length)
@@ -108,7 +108,7 @@ type DependencyManagerInteractiveTests() =
             Assert.AreEqual(0, result.SourceFiles |> Seq.length)
             Assert.AreEqual(0, result.Roots |> Seq.length)
 
-        let result = dp.Resolve(idm, ".fsx", [|"System.Collections.Immutable.DoesNotExist"|], reportError, "netcoreapp3.1")
+        let result = dp.Resolve(idm, ".fsx", [|"System.Collections.Immutable.DoesNotExist"|], reportError, "net5.0")
         Assert.AreEqual(false, result.Success)
         Assert.AreEqual(0, result.Resolutions |> Seq.length)
         Assert.AreEqual(0, result.SourceFiles |> Seq.length)
@@ -140,7 +140,7 @@ type DependencyManagerInteractiveTests() =
             Assert.AreEqual(1, result1.Roots |> Seq.length)
             Assert.IsTrue((result1.Roots |> Seq.head).EndsWith("/fsharp.data/3.3.3/"))
 
-        let result2 = dp1.Resolve(idm1, ".fsx", [|"FSharp.Data, 3.3.3"|], reportError, "netcoreapp3.1")
+        let result2 = dp1.Resolve(idm1, ".fsx", [|"FSharp.Data, 3.3.3"|], reportError, "net5.0")
         Assert.AreEqual(true, result2.Success)
         Assert.AreEqual(1, result2.Resolutions |> Seq.length)
         let expected2 =
@@ -165,7 +165,7 @@ type DependencyManagerInteractiveTests() =
             Assert.AreEqual(1, result3.SourceFiles |> Seq.length)
             Assert.IsTrue((result3.Roots |> Seq.head).EndsWith("/system.json/4.6.0/"))
 
-        let result4 = dp2.Resolve(idm2, ".fsx", [|"System.Json, Version=4.6.0"|], reportError, "netcoreapp3.1")
+        let result4 = dp2.Resolve(idm2, ".fsx", [|"System.Json, Version=4.6.0"|], reportError, "net5.0")
         Assert.AreEqual(true, result4.Success)
         Assert.AreEqual(1, result4.Resolutions |> Seq.length)
         let expected4 =
@@ -205,14 +205,14 @@ type DependencyManagerInteractiveTests() =
 
         // Netstandard gets fewer dependencies than desktop, because desktop framework doesn't contain assemblies like System.Memory
         // Those assemblies must be delivered by nuget for desktop apps
-        let result2 = dp1.Resolve(idm1, ".fsx", [|"Microsoft.Extensions.Configuration.Abstractions, 3.1.1"|], reportError, "netcoreapp3.1")
+        let result2 = dp1.Resolve(idm1, ".fsx", [|"Microsoft.Extensions.Configuration.Abstractions, 3.1.1"|], reportError, "net5.0")
         Assert.AreEqual(true, result2.Success)
         Assert.AreEqual(2, result2.Resolutions |> Seq.length)
         let expected =
             if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then
-                "\\netcoreapp3.1\\"
+                "\\net5.0\\"
             else
-                "/netcoreapp3.1/"
+                "/net5.0/"
         Assert.IsTrue((result2.Resolutions |> Seq.head).Contains(expected))
         Assert.AreEqual(1, result2.SourceFiles |> Seq.length)
         Assert.AreEqual(2, result2.Roots |> Seq.length)
@@ -267,7 +267,7 @@ TorchSharp.Tensor.LongTensor.From([| 0L .. 100L |]).Device
         let result =
             use dp = new DependencyProvider(AssemblyResolutionProbe(assemblyProbingPaths), NativeResolutionProbe(nativeProbingRoots))
             let idm = dp.TryFindDependencyManagerByKey(Seq.empty, "", reportError, "nuget")
-            dp.Resolve(idm, ".fsx", packagemanagerlines, reportError, "netcoreapp3.1")
+            dp.Resolve(idm, ".fsx", packagemanagerlines, reportError, "net5.0")
 
         Assert.IsTrue(result.Success, "resolve failed")
 
@@ -364,7 +364,7 @@ printfn ""%A"" result
         let result =
             use dp = new DependencyProvider(NativeResolutionProbe(nativeProbingRoots))
             let idm = dp.TryFindDependencyManagerByKey(Seq.empty, "", reportError, "nuget")
-            dp.Resolve(idm, ".fsx", packagemanagerlines, reportError, "netcoreapp3.1")
+            dp.Resolve(idm, ".fsx", packagemanagerlines, reportError, "net5.0")
 
         Assert.IsTrue(result.Success, "resolve failed")
 
@@ -446,7 +446,7 @@ printfn ""%A"" result
         let result =
             use dp = new DependencyProvider(NativeResolutionProbe(nativeProbingRoots))
             let idm = dp.TryFindDependencyManagerByKey(Seq.empty, "", reportError, "nuget")
-            dp.Resolve(idm, ".fsx", packagemanagerlines, reportError, "netcoreapp3.1")
+            dp.Resolve(idm, ".fsx", packagemanagerlines, reportError, "net5.0")
 
         Assert.IsTrue(result.Success, "resolve failed")
 
@@ -503,7 +503,7 @@ x |> Seq.iter(fun r ->
         let result =
             use dp = new DependencyProvider(NativeResolutionProbe(nativeProbingRoots))
             let idm = dp.TryFindDependencyManagerByKey(Seq.empty, "", reportError, "nuget")
-            dp.Resolve(idm, ".fsx", packagemanagerlines, reportError, "netcoreapp3.1")
+            dp.Resolve(idm, ".fsx", packagemanagerlines, reportError, "net5.0")
 
         // Expected: error FS3217: PackageManager can not reference the System Package 'FSharp.Core'
         Assert.IsFalse(result.Success, "resolve succeeded but should have failed")
@@ -529,7 +529,7 @@ x |> Seq.iter(fun r ->
         let result =
             use dp = new DependencyProvider(NativeResolutionProbe(nativeProbingRoots))
             let idm = dp.TryFindDependencyManagerByKey(Seq.empty, "", reportError, "nuget")
-            dp.Resolve(idm, ".csx", packagemanagerlines, reportError, "netcoreapp3.1")
+            dp.Resolve(idm, ".csx", packagemanagerlines, reportError, "net5.0")
 
         Assert.IsTrue(result.Success, "resolve failed but should have succeeded")
 
@@ -572,7 +572,7 @@ x |> Seq.iter(fun r ->
             Assert.AreEqual(1, result.SourceFiles |> Seq.length)
             Assert.AreEqual(1, result.Roots |> Seq.length)
 
-        let result = dp.Resolve(idm, ".fsx", [|"FSharp.Data"|], reportError, "netcoreapp3.1")
+        let result = dp.Resolve(idm, ".fsx", [|"FSharp.Data"|], reportError, "net5.0")
         Assert.AreEqual(true, result.Success)
         Assert.AreEqual(1, result.Resolutions |> Seq.length)
         Assert.AreEqual(1, result.SourceFiles |> Seq.length)
