@@ -14,21 +14,6 @@ open Internal.Utilities.FSharpEnvironment
 /// host implements this, it's job is to return a list of package roots to probe.
 type NativeResolutionProbe = delegate of Unit -> seq<string>
 
-#if NETSTANDARD
-open System.Runtime.Loader
-
-// Cut down AssemblyLoadContext, for loading native libraries
-type NativeAssemblyLoadContext () =
-    inherit AssemblyLoadContext()
-
-    member this.LoadNativeLibrary(path: string): IntPtr =
-        base.LoadUnmanagedDllFromPath(path)
-
-    override _.Load(_path: AssemblyName): Assembly =
-        raise (NotImplementedException())
-
-    static member NativeLoadContext = new NativeAssemblyLoadContext()
-
 /// Type that encapsulates Native library probing for managed packages
 type NativeDllResolveHandlerCoreClr (nativeProbingRoots: NativeResolutionProbe) =
     let probingFileNames (name: string) =
@@ -64,6 +49,8 @@ type NativeDllResolveHandlerCoreClr (nativeProbingRoots: NativeResolutionProbe) 
                             yield (sprintf "%s%s" p name)
         |]
 
+    let context = CoreClrAssemblyLoadContext()
+
     let _resolveUnmanagedDll (_: Assembly) (name: string): IntPtr =
         // Enumerate probing roots looking for a dll that matches the probing name in the probed locations
         let probeForNativeLibrary root rid name =
@@ -89,32 +76,25 @@ type NativeDllResolveHandlerCoreClr (nativeProbingRoots: NativeResolutionProbe) 
                             RidHelpers.probingRids |> Seq.tryPick(fun rid -> probeForNativeLibrary root rid name)))
 
         match probe with
-        | Some path -> NativeAssemblyLoadContext.NativeLoadContext.LoadNativeLibrary(path)
+        | Some path ->
+            context.LoadUnmanagedDllFromPath(path)
         | None -> IntPtr.Zero
 
-    // netstandard 2.1 has this property, unfortunately we don't build with that yet
-    //public event Func<Assembly, string, IntPtr> ResolvingUnmanagedDll
-    let eventInfo = typeof<AssemblyLoadContext>.GetEvent("ResolvingUnmanagedDll")
-    let handler = Func<Assembly, string, IntPtr> (_resolveUnmanagedDll)
+
+    let handler = Func<Assembly, string, IntPtr>(_resolveUnmanagedDll)
 
     do
-        if not (isNull eventInfo) then
-            eventInfo.AddEventHandler(AssemblyLoadContext.Default, handler)
+        CoreClrAssemblyLoadContext.Default.AddResolvingUnmanagedDllHandler(handler)
 
     interface IDisposable with
         member _x.Dispose() =
-            if not (isNull eventInfo) then
-                eventInfo.RemoveEventHandler(AssemblyLoadContext.Default, handler)
-            ()
-#endif
+            CoreClrAssemblyLoadContext.Default.RemoveResolvingUnmanagedDllHandler(handler)
 
-type NativeDllResolveHandler (_nativeProbingRoots: NativeResolutionProbe) =
-    let handler: IDisposable option =
-#if NETSTANDARD
+type NativeDllResolveHandler (nativeProbingRoots: NativeResolutionProbe) =
+    let handler:IDisposable option =
         if isRunningOnCoreClr then
-            Some (new NativeDllResolveHandlerCoreClr(_nativeProbingRoots) :> IDisposable)
+            Some (new NativeDllResolveHandlerCoreClr(nativeProbingRoots) :> IDisposable)
         else
-#endif
             None
 
     let appendSemiColon (p:string) =

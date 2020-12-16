@@ -572,6 +572,9 @@
     <Compile Include="..\DotNetFrameworkDependencies.fs">
       <Link>Driver\DotNetFrameworkDependencies.fs</Link>
     </Compile>
+    <Compile Include="..\Microsoft.DotNet.DependencyManager/CoreClrAssemblyLoadContext.fs">
+      <Link>Driver\CoreClrAssemblyLoadContext.fs</Link>
+    </Compile>
     <Compile Include="..\Microsoft.DotNet.DependencyManager/AssemblyResolveHandler.fsi">
       <Link>Driver\AssemblyResolveHandler.fsi</Link>
     </Compile>

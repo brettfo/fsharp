@@ -3,7 +3,6 @@
 namespace Microsoft.DotNet.DependencyManager
 
 open System
-open System.Collections.Generic
 open System.IO
 open System.Reflection
 open Internal.Utilities.FSharpEnvironment
@@ -12,43 +11,41 @@ open Internal.Utilities.FSharpEnvironment
 /// host implements this, it's job is to return a list of assembly paths to probe.
 type AssemblyResolutionProbe = delegate of Unit -> seq<string>
 
-#if NETSTANDARD
-
-open System.Runtime.Loader
-
 /// Type that encapsulates AssemblyResolveHandler for managed packages
-type AssemblyResolveHandlerCoreclr (assemblyProbingPaths: AssemblyResolutionProbe) =
+//type AssemblyResolveHandlerCoreclr (assemblyProbingPaths: AssemblyResolutionProbe) =
 
-    let resolveAssemblyNetStandard (ctxt: AssemblyLoadContext) (assemblyName: AssemblyName): Assembly =
+//    let coreclrContext = CoreClrAssemblyLoadContext()
 
-        let loadAssembly path =
-            ctxt.LoadFromAssemblyPath(path)
+//    let resolveAssemblyNetStandard (ctxt: obj (*AssemblyLoadContext*)) (assemblyName: AssemblyName): Assembly =
 
-        let assemblyPaths =
-            match assemblyProbingPaths with
-            | null -> Seq.empty<string>
-            | _ ->  assemblyProbingPaths.Invoke()
+//        let assemblyPaths =
+//            match assemblyProbingPaths with
+//            | null -> Seq.empty<string>
+//            | _ ->  assemblyProbingPaths.Invoke()
 
-        try
-            // args.Name is a displayname formatted assembly version.
-            // E.g:  "System.IO.FileSystem, Version=4.1.1.0, Culture=en-US, PublicKeyToken=b03f5f7f11d50a3a"
-            let simpleName = assemblyName.Name
-            let assemblyPathOpt = assemblyPaths |> Seq.tryFind(fun path -> Path.GetFileNameWithoutExtension(path) = simpleName)
-            match assemblyPathOpt with
-            | Some path ->
-                loadAssembly path
-            | None -> Unchecked.defaultof<Assembly>
+//        try
+//            // args.Name is a displayname formatted assembly version.
+//            // E.g:  "System.IO.FileSystem, Version=4.1.1.0, Culture=en-US, PublicKeyToken=b03f5f7f11d50a3a"
+//            let simpleName = assemblyName.Name
+//            let assemblyPathOpt = assemblyPaths |> Seq.tryFind(fun path -> Path.GetFileNameWithoutExtension(path) = simpleName)
+//            match assemblyPathOpt with
+//            | Some path ->
+//                //coreclrContext.LoadFromAssemblyPath ctxt path
+//                Assembly.LoadFrom(path)
+//            | None -> Unchecked.defaultof<Assembly>
 
-        with | _ -> Unchecked.defaultof<Assembly>
+//        with | _ -> Unchecked.defaultof<Assembly>
 
-    let handler = Func<AssemblyLoadContext, AssemblyName, Assembly>(resolveAssemblyNetStandard)
-    do AssemblyLoadContext.Default.add_Resolving(handler)
+//    let handler = Func<obj, AssemblyName, Assembly>(resolveAssemblyNetStandard)
 
-    interface IDisposable with
-        member _x.Dispose() =
-            AssemblyLoadContext.Default.remove_Resolving(handler)
+//    do
+//        //CoreClrAssemblyLoadContext.Default.AddResolvingHandler(handler)
+//        ()
 
-#endif
+//    interface IDisposable with
+//        member _x.Dispose() =
+//            //CoreClrAssemblyLoadContext.Default.RemoveResolvingHandler(handler)
+//            ()
 
 /// Type that encapsulates AssemblyResolveHandler for managed packages
 type AssemblyResolveHandlerDeskTop (assemblyProbingPaths: AssemblyResolutionProbe) =
@@ -85,11 +82,10 @@ type AssemblyResolveHandlerDeskTop (assemblyProbingPaths: AssemblyResolutionProb
 type AssemblyResolveHandler (assemblyProbingPaths: AssemblyResolutionProbe) =
 
     let handler =
-#if NETSTANDARD
         if isRunningOnCoreClr then
-            new AssemblyResolveHandlerCoreclr(assemblyProbingPaths) :> IDisposable
+            //new AssemblyResolveHandlerCoreclr(assemblyProbingPaths) :> IDisposable
+            new AssemblyResolveHandlerDeskTop(assemblyProbingPaths) :> IDisposable
         else
-#endif
             new AssemblyResolveHandlerDeskTop(assemblyProbingPaths) :> IDisposable
 
     interface IDisposable with
