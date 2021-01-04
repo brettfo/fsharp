@@ -72,15 +72,36 @@ type CoreClrAssemblyLoadContext() =
         if isNull assemblyLoadContextType then
             fun _path -> IntPtr.Zero
         else
-            let assemblyName = sprintf "asm_%s" (Guid.NewGuid().ToString("N")) |> AssemblyName
-            let assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run)
-            let moduleBuilder = assemblyBuilder.DefineDynamicModule("mod")
-            let typeBuilder = moduleBuilder.DefineType("NativeAssemblyLoadContext", TypeAttributes.Class, assemblyLoadContextType)
-            let typeInfo = typeBuilder.CreateTypeInfo()
-            let newType = typeInfo.AsType()
-            let nativeLoadContext = Activator.CreateInstance(newType)
-            let loadUnmanagedDllMethod = assemblyLoadContextType.GetMethod("LoadUnmanagedDllFromPath", BindingFlags.NonPublic ||| BindingFlags.Instance)
-            fun (path: string) -> loadUnmanagedDllMethod.Invoke(nativeLoadContext, [| box path |]) :?> IntPtr
+            let nativeLibraryType = typeof<obj>.Assembly.GetType("System.Runtime.InteropServices.NativeLibrary")
+            let tryLoadMethod = nativeLibraryType.GetMethod("TryLoad", [| typeof<string>; typeof<IntPtr>.MakeByRefType() |])
+            fun (path: string) ->
+                let parameters = [| box path; null |]
+                let success = tryLoadMethod.Invoke(null, parameters) :?> bool
+                match success with
+                | true -> parameters.[1] :?> IntPtr
+                | false -> IntPtr.Zero
+
+
+            //let assemblyName = sprintf "asm_%s" (Guid.NewGuid().ToString("N")) |> AssemblyName
+            //let assemblyBuilderParent = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run)
+            //let moduleBuilderParent = assemblyBuilderParent.DefineDynamicModule("mod")
+            //let typeBuilderParent = moduleBuilderParent.DefineType("HACK_AssemblyBuilder", TypeAttributes.Class, typeof<AssemblyBuilder>)
+            //let methodBuilder = typeBuilderParent.DefineMethod("get_Location", MethodAttributes.Assembly, typeof<string>, [||])
+            //let ilGen = methodBuilder.GetILGenerator()
+            //ilGen.Emit(OpCodes.Ldstr, typeof<CoreClrAssemblyLoadContext>.Assembly.Location)
+            //ilGen.Emit(OpCodes.Ret)
+            //typeBuilderParent.DefineMethodOverride(methodBuilder, typeof<AssemblyBuilder>.GetMethod("get_Location"))
+            //let assemblyBuilderTypeInfo = typeBuilderParent.CreateTypeInfo()
+            //let assemblyBuilderType = assemblyBuilderTypeInfo.AsType()
+            
+            //let assemblyBuilder = Activator.CreateInstance(assemblyBuilderType) :?> AssemblyBuilder
+            //let moduleBuilder = assemblyBuilder.DefineDynamicModule("mod2")
+            //let typeBuilder = moduleBuilder.DefineType("NativeAssemblyLoadContext", TypeAttributes.Class, assemblyLoadContextType)
+            //let typeInfo = typeBuilder.CreateTypeInfo()
+            //let newType = typeInfo.AsType()
+            //let nativeLoadContext = Activator.CreateInstance(newType)
+            //let loadUnmanagedDllMethod = assemblyLoadContextType.GetMethod("LoadUnmanagedDllFromPath", BindingFlags.NonPublic ||| BindingFlags.Instance)
+            //fun (path: string) -> loadUnmanagedDllMethod.Invoke(nativeLoadContext, [| box path |]) :?> IntPtr
 
     member _.LoadUnmanagedDllFromPath (path: string): IntPtr = loaderFunction path
 

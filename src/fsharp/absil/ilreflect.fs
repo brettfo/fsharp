@@ -2087,12 +2087,22 @@ let buildModuleFragment cenv emEnv (asmB: AssemblyBuilder) (modB: ModuleBuilder)
 //----------------------------------------------------------------------------
 // test hook
 //----------------------------------------------------------------------------
-let defineDynamicAssemblyAndLog (asmName, flags, asmDir: string) =
+let defineDynamicAssemblyAndLog (asmName: AssemblyName, flags, asmDir: string) =
 #if FX_NO_APP_DOMAINS
     let asmB = AssemblyBuilder.DefineDynamicAssembly(asmName, flags)
 #else
     let currentDom = System.AppDomain.CurrentDomain
-    let asmB = currentDom.DefineDynamicAssembly(asmName, flags, asmDir)
+    let asmB = currentDom.DefineDynamicAssembly(AssemblyName(sprintf "FSI-%s" (System.Guid.NewGuid().ToString("N"))), AssemblyBuilderAccess.Run)
+    let modB = asmB.DefineDynamicModule("mmm")
+    let typeB = modB.DefineType("FsiAssemblyBuilder", TypeAttributes.Class, typeof<AssemblyBuilder>)
+    let methB = typeB.DefineMethod("get_Location", MethodAttributes.Public)
+    methB.SetReturnType(typeof<string>)
+    let ilGen = methB.GetILGenerator()
+    ilGen.Emit(OpCodes.Ldnull)
+    ilGen.Emit(OpCodes.Ret)
+    typeB.DefineMethodOverride(methB, typeof<AssemblyBuilder>.GetMethod("get_Location"))
+    let asmBT = typeB.CreateType()
+    let asmB = Activator.CreateInstance(asmBT) :?> AssemblyBuilder
 #endif
     if logRefEmitCalls then 
         printfn "open System"
